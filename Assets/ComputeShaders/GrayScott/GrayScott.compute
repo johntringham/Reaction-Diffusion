@@ -34,9 +34,9 @@ void CSResetGrid(uint3 id : SV_DispatchThreadID)
     float2 distanceFromCenter = float2((TexSize * 0.5) - id.x, (TexSize * 0.5) - id.y);
 
     if(abs(distanceFromCenter.x) < Radius &&  abs(distanceFromCenter.y) < Radius){
-        Result[id.xy] = float4(1, 0, 1, 0);
+        Result[id.xy] = float4(1, 0, 1, 1);
     }else{
-        Result[id.xy] = float4(1, 0, 0, 0);
+        Result[id.xy] = float4(1, 0, 0, 1);
     }
 
     // distanceFromCenter = float2((TexSize * 0.25) - id.x, (TexSize * 0.5) - id.y);
@@ -132,41 +132,94 @@ float convolveB(int2 position)
         ReadBitmapValue(position.xy).b * -1;
 }
 
+// [numthreads(8, 8, 1)]
+// void CSMain(uint3 id : SV_DispatchThreadID)
+// {
+//     float4 current = ReadBitmapValue(id.xy);
+    
+//     float A = clamp(current.r, 0, 1);
+//     float B = clamp(current.b, 0, 1);
+
+//     float abSquared = A * B * B;    
+    
+//     float4 convoledA = convolveA(id.xy);
+//     float4 convoledB = convolveB(id.xy);
+
+//     float newA = A
+//                  + ((ADiffusionRate * convoledA)
+//                  - abSquared
+//                  + (Feed * (1-A))) * DeltaTime;
+
+//     float newB = B
+//                  + ((BDiffusionRate * convoledB)
+//                  + abSquared
+//                  - ((Feed + Kill) * B)) * DeltaTime;
+
+//     float r = clamp(newA, 0, 1);
+//     float b = clamp(newB, 0, 1);
+
+//     float4 newValue = float4(0,0,0,0);
+//     newValue.r = r;
+//     newValue.b = b;
+//     newValue.a = 1;
+
+//     Result[id.xy] = newValue; 
+
+//     // float4 convoled = convolve(id.xy);
+//     // float4 current = Prev[id.xy];
+
+//     // Result[id.xy] = current + current * convoled;
+// }
+
 [numthreads(8, 8, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    float4 current = ReadBitmapValue(id.xy);
-    
-    float A = clamp(current.r, 0, 1);
-    float B = clamp(current.b, 0, 1);
+    int i = id.x;
+    int j = id.y;
 
-    float abSquared = A * B * B;    
-    
-    float4 convoledA = convolveA(id.xy);
-    float4 convoledB = convolveB(id.xy);
+    float4 spot = Prev[int2(i,j)];
 
-    float newA = A
-                 + ((ADiffusionRate * convoledA)
-                 - abSquared
-                 + (Feed * (1-A))) * DeltaTime;
+    float a = spot.a;
+    float b = spot.b;
 
-    float newB = B
-                 + ((BDiffusionRate * convoledB)
-                 + abSquared
-                 - ((Feed + Kill) * B)) * DeltaTime;
+    float laplaceA = 0.0;
+    laplaceA += a* (-1.0);
+    laplaceA += Prev[int2(i+1, j  )].r*0.2;
+    laplaceA += Prev[int2(i-1, j  )].r*0.2;
+    laplaceA += Prev[int2(i  , j+1)].r*0.2;
+    laplaceA += Prev[int2(i  , j-1)].r*0.2;
+    laplaceA += Prev[int2(i-1, j-1)].r*0.05;
+    laplaceA += Prev[int2(i+1, j-1)].r*0.05;
+    laplaceA += Prev[int2(i-1, j+1)].r*0.05;
+    laplaceA += Prev[int2(i+1, j+1)].r*0.05;
 
-    float r = clamp(newA, 0, 1);
-    float b = clamp(newB, 0, 1);
+    float laplaceB = 0.0;
+    laplaceB += b*(-1.0);
+    laplaceB += Prev[int2(i+1, j  )].b*0.2;
+    laplaceB += Prev[int2(i-1, j  )].b*0.2;
+    laplaceB += Prev[int2(i  , j+1)].b*0.2;
+    laplaceB += Prev[int2(i  , j-1)].b*0.2;
+    laplaceB += Prev[int2(i-1, j-1)].b*0.05;
+    laplaceB += Prev[int2(i+1, j-1)].b*0.05;
+    laplaceB += Prev[int2(i-1, j+1)].b*0.05;
+    laplaceB += Prev[int2(i+1, j+1)].b*0.05;
 
-    float4 newValue = float4(0,0,0,0);
-    newValue.r = r;
-    newValue.b = b;
-    newValue.a = 1;
+    float newA = a + (ADiffusionRate*laplaceA - a*b*b + Feed*(1.0-a))*1.0;
+    float newB = b + (BDiffusionRate*laplaceB + a*b*b - (Kill+Feed)*b)*1.0;
 
-    Result[id.xy] = newValue; 
+    if(newA > 1.0){
+        newA = 1.0;
+    }
+    if(newA < 0.0){
+        newA = 0.0;
+    }
 
-    // float4 convoled = convolve(id.xy);
-    // float4 current = Prev[id.xy];
+    if(newB > 1.0){
+        newB = 1.0;
+    }
+    if(newB < 0.0){
+        newB = 0.0;
+    }
 
-    // Result[id.xy] = current + current * convoled;
+    Result[id.xy] = float4(newA, 0, newB, 1.0);
 }
