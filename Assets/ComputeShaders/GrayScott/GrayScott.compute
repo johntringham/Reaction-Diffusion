@@ -4,8 +4,6 @@
 
 #include "..\..\Compute\NoiseInclude.compute"
 
-// Create a RenderTexture with enableRandomWrite flag and set it
-// with cs.SetTexture
 int TexSize;
 float Radius;
 
@@ -16,17 +14,31 @@ float BDiffusionRate;
 
 float DeltaTime;
 
-Texture2D<float4> Prev;
-RWTexture2D<float4> Result;
+struct GrayScottStruct {
+    float A;
+    float B;
+};
 
-// static const float3x3 laplacian = float3x3(0.05, 0.2,  0.05,
-//                                            0.2,   -1,   0.2, 
-//                                            0.05, 0.2, 0.05);
-// static const float3x3 laplacian = float3x3(1, 1,  1,
-//                                            1,   -1,   1, 
-//                                            1, 1, 1);
+RWStructuredBuffer<GrayScottStruct> Current;
+RWStructuredBuffer<GrayScottStruct> Prev;
 
-// static const float3x3 laplacian = float3x3(1,1,1,1,1,1,1,1,1);
+RWTexture2D<float4> Bitmap;
+
+GrayScottStruct GetValue(int2 position){
+    return Prev[position.x + (position.y * TexSize)];
+}
+
+void SetValue(int2 position, float a, float b){
+    // can be optimised
+
+    a = clamp(a, 0, 1);
+    b = clamp(b, 0, 1);
+
+    Current[position.x + (position.y) * TexSize].A = a;
+    Current[position.x + (position.y) * TexSize].B = b;
+
+    Bitmap[position.xy] = float4(a, 0, b, 1);
+}
 
 [numthreads(8, 8, 1)]
 void CSResetGrid(uint3 id : SV_DispatchThreadID)
@@ -34,9 +46,9 @@ void CSResetGrid(uint3 id : SV_DispatchThreadID)
     float2 distanceFromCenter = float2((TexSize * 0.5) - id.x, (TexSize * 0.5) - id.y);
 
     if(abs(distanceFromCenter.x) < Radius &&  abs(distanceFromCenter.y) < Radius){
-        Result[id.xy] = float4(1, 0, 1, 1);
+        SetValue(id.xy, 1, 0);
     }else{
-        Result[id.xy] = float4(1, 0, 0, 1);
+        SetValue(id.xy, 1, 1);
     }
 
     // distanceFromCenter = float2((TexSize * 0.25) - id.x, (TexSize * 0.5) - id.y);
@@ -73,64 +85,64 @@ void CSResetGrid(uint3 id : SV_DispatchThreadID)
 //             Prev[(position.xy + int2(1, 1)  ) % (TexSize - 2)] * laplacian._33 );
 // }
 
-float4 ReadBitmapValue(int2 position){
-    int2 wrappedPos = int2((position.x+TexSize) % TexSize, (position.y+TexSize) % TexSize);
-    return Prev[wrappedPos];
-}
+// float4 ReadBitmapValue(int2 position){
+//     int2 wrappedPos = int2((position.x+TexSize) % TexSize, (position.y+TexSize) % TexSize);
+//     return Prev[wrappedPos];
+// }
 
-float convolve2(int2 position, int index)
-{
-    // return  ReadBitmapValue(position.xy + int2(-1, -1))[index] * laplacian._11 +
-    //         ReadBitmapValue(position.xy + int2(-1, 0) )[index] * laplacian._12 +
-    //         ReadBitmapValue(position.xy + int2(-1, 1) )[index] * laplacian._13 +
-    //         ReadBitmapValue(position.xy + int2(0, -1) )[index] * laplacian._21 +
-    //         ReadBitmapValue(position.xy + int2(0, 0)  )[index] * laplacian._22 +
-    //         ReadBitmapValue(position.xy + int2(0, 1)  )[index] * laplacian._23 +
-    //         ReadBitmapValue(position.xy + int2(1, -1) )[index] * laplacian._31 +
-    //         ReadBitmapValue(position.xy + int2(1, 0)  )[index] * laplacian._32 +
-    //         ReadBitmapValue(position.xy + int2(1, 1)  )[index] * laplacian._33;
+// float convolve2(int2 position, int index)
+// {
+//     // return  ReadBitmapValue(position.xy + int2(-1, -1))[index] * laplacian._11 +
+//     //         ReadBitmapValue(position.xy + int2(-1, 0) )[index] * laplacian._12 +
+//     //         ReadBitmapValue(position.xy + int2(-1, 1) )[index] * laplacian._13 +
+//     //         ReadBitmapValue(position.xy + int2(0, -1) )[index] * laplacian._21 +
+//     //         ReadBitmapValue(position.xy + int2(0, 0)  )[index] * laplacian._22 +
+//     //         ReadBitmapValue(position.xy + int2(0, 1)  )[index] * laplacian._23 +
+//     //         ReadBitmapValue(position.xy + int2(1, -1) )[index] * laplacian._31 +
+//     //         ReadBitmapValue(position.xy + int2(1, 0)  )[index] * laplacian._32 +
+//     //         ReadBitmapValue(position.xy + int2(1, 1)  )[index] * laplacian._33;
 
-    return  
-            ReadBitmapValue(position.xy + int2(-1, -1))[index] * 0.05 +
-            ReadBitmapValue(position.xy + int2(1, -1) )[index] * 0.05 +
-            ReadBitmapValue(position.xy + int2(-1, 1) )[index] * 0.05 +
-            ReadBitmapValue(position.xy + int2(1, 1)  )[index] * 0.05 +
+//     return  
+//             ReadBitmapValue(position.xy + int2(-1, -1))[index] * 0.05 +
+//             ReadBitmapValue(position.xy + int2(1, -1) )[index] * 0.05 +
+//             ReadBitmapValue(position.xy + int2(-1, 1) )[index] * 0.05 +
+//             ReadBitmapValue(position.xy + int2(1, 1)  )[index] * 0.05 +
 
-            ReadBitmapValue(position.xy + int2(-1, 0) )[index] * 0.2 +
-            ReadBitmapValue(position.xy + int2(0, -1) )[index] * 0.2 +
-            ReadBitmapValue(position.xy + int2(0, 1)  )[index] * 0.2 +
-            ReadBitmapValue(position.xy + int2(1, 0)  )[index] * 0.2 +
+//             ReadBitmapValue(position.xy + int2(-1, 0) )[index] * 0.2 +
+//             ReadBitmapValue(position.xy + int2(0, -1) )[index] * 0.2 +
+//             ReadBitmapValue(position.xy + int2(0, 1)  )[index] * 0.2 +
+//             ReadBitmapValue(position.xy + int2(1, 0)  )[index] * 0.2 +
 
-            ReadBitmapValue(position.xy)[index] * -1;
-}
+//             ReadBitmapValue(position.xy)[index] * -1;
+// }
 
-float convolveA(int2 position)
-{
-    return  
-        ReadBitmapValue(position.xy + int2(-1, -1)).r * 0.05 +
-        ReadBitmapValue(position.xy + int2(1, -1) ).r * 0.05 +
-        ReadBitmapValue(position.xy + int2(-1, 1) ).r * 0.05 +
-        ReadBitmapValue(position.xy + int2(1, 1)  ).r * 0.05 +
-        ReadBitmapValue(position.xy + int2(-1, 0) ).r * 0.2 +
-        ReadBitmapValue(position.xy + int2(0, -1) ).r * 0.2 +
-        ReadBitmapValue(position.xy + int2(0, 1)  ).r * 0.2 +
-        ReadBitmapValue(position.xy + int2(1, 0)  ).r * 0.2 +
-        ReadBitmapValue(position.xy).r * -1;
-}
+// float convolveA(int2 position)
+// {
+//     return  
+//         ReadBitmapValue(position.xy + int2(-1, -1)).r * 0.05 +
+//         ReadBitmapValue(position.xy + int2(1, -1) ).r * 0.05 +
+//         ReadBitmapValue(position.xy + int2(-1, 1) ).r * 0.05 +
+//         ReadBitmapValue(position.xy + int2(1, 1)  ).r * 0.05 +
+//         ReadBitmapValue(position.xy + int2(-1, 0) ).r * 0.2 +
+//         ReadBitmapValue(position.xy + int2(0, -1) ).r * 0.2 +
+//         ReadBitmapValue(position.xy + int2(0, 1)  ).r * 0.2 +
+//         ReadBitmapValue(position.xy + int2(1, 0)  ).r * 0.2 +
+//         ReadBitmapValue(position.xy).r * -1;
+// }
 
-float convolveB(int2 position)
-{
-    return  
-        ReadBitmapValue(position.xy + int2(-1, -1)).b * 0.05 +
-        ReadBitmapValue(position.xy + int2(1, -1) ).b * 0.05 +
-        ReadBitmapValue(position.xy + int2(-1, 1) ).b * 0.05 +
-        ReadBitmapValue(position.xy + int2(1, 1)  ).b * 0.05 +
-        ReadBitmapValue(position.xy + int2(-1, 0) ).b * 0.2 +
-        ReadBitmapValue(position.xy + int2(0, -1) ).b * 0.2 +
-        ReadBitmapValue(position.xy + int2(0, 1)  ).b * 0.2 +
-        ReadBitmapValue(position.xy + int2(1, 0)  ).b * 0.2 +
-        ReadBitmapValue(position.xy).b * -1;
-}
+// float convolveB(int2 position)
+// {
+//     return  
+//         ReadBitmapValue(position.xy + int2(-1, -1)).b * 0.05 +
+//         ReadBitmapValue(position.xy + int2(1, -1) ).b * 0.05 +
+//         ReadBitmapValue(position.xy + int2(-1, 1) ).b * 0.05 +
+//         ReadBitmapValue(position.xy + int2(1, 1)  ).b * 0.05 +
+//         ReadBitmapValue(position.xy + int2(-1, 0) ).b * 0.2 +
+//         ReadBitmapValue(position.xy + int2(0, -1) ).b * 0.2 +
+//         ReadBitmapValue(position.xy + int2(0, 1)  ).b * 0.2 +
+//         ReadBitmapValue(position.xy + int2(1, 0)  ).b * 0.2 +
+//         ReadBitmapValue(position.xy).b * -1;
+// }
 
 // [numthreads(8, 8, 1)]
 // void CSMain(uint3 id : SV_DispatchThreadID)
@@ -177,32 +189,32 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     int i = id.x;
     int j = id.y;
 
-    float4 spot = Prev[int2(i,j)];
+    GrayScottStruct spot = GetValue(int2(i,j));
 
-    float a = spot.a;
-    float b = spot.b;
+    float a = spot.A;
+    float b = spot.B;
 
     float laplaceA = 0.0;
     laplaceA += a* (-1.0);
-    laplaceA += Prev[int2(i+1, j  )].r*0.2;
-    laplaceA += Prev[int2(i-1, j  )].r*0.2;
-    laplaceA += Prev[int2(i  , j+1)].r*0.2;
-    laplaceA += Prev[int2(i  , j-1)].r*0.2;
-    laplaceA += Prev[int2(i-1, j-1)].r*0.05;
-    laplaceA += Prev[int2(i+1, j-1)].r*0.05;
-    laplaceA += Prev[int2(i-1, j+1)].r*0.05;
-    laplaceA += Prev[int2(i+1, j+1)].r*0.05;
+    laplaceA += GetValue(int2(i+1, j  )).A*0.2;
+    laplaceA += GetValue(int2(i-1, j  )).A*0.2;
+    laplaceA += GetValue(int2(i  , j+1)).A*0.2;
+    laplaceA += GetValue(int2(i  , j-1)).A*0.2;
+    laplaceA += GetValue(int2(i-1, j-1)).A*0.05;
+    laplaceA += GetValue(int2(i+1, j-1)).A*0.05;
+    laplaceA += GetValue(int2(i-1, j+1)).A*0.05;
+    laplaceA += GetValue(int2(i+1, j+1)).A*0.05;
 
     float laplaceB = 0.0;
     laplaceB += b*(-1.0);
-    laplaceB += Prev[int2(i+1, j  )].b*0.2;
-    laplaceB += Prev[int2(i-1, j  )].b*0.2;
-    laplaceB += Prev[int2(i  , j+1)].b*0.2;
-    laplaceB += Prev[int2(i  , j-1)].b*0.2;
-    laplaceB += Prev[int2(i-1, j-1)].b*0.05;
-    laplaceB += Prev[int2(i+1, j-1)].b*0.05;
-    laplaceB += Prev[int2(i-1, j+1)].b*0.05;
-    laplaceB += Prev[int2(i+1, j+1)].b*0.05;
+    laplaceB += GetValue(int2(i+1, j  )).B*0.2;
+    laplaceB += GetValue(int2(i-1, j  )).B*0.2;
+    laplaceB += GetValue(int2(i  , j+1)).B*0.2;
+    laplaceB += GetValue(int2(i  , j-1)).B*0.2;
+    laplaceB += GetValue(int2(i-1, j-1)).B*0.05;
+    laplaceB += GetValue(int2(i+1, j-1)).B*0.05;
+    laplaceB += GetValue(int2(i-1, j+1)).B*0.05;
+    laplaceB += GetValue(int2(i+1, j+1)).B*0.05;
 
     float newA = a + (ADiffusionRate*laplaceA - a*b*b + Feed*(1.0-a))*1.0;
     float newB = b + (BDiffusionRate*laplaceB + a*b*b - (Kill+Feed)*b)*1.0;
@@ -221,5 +233,5 @@ void CSMain(uint3 id : SV_DispatchThreadID)
         newB = 0.0;
     }
 
-    Result[id.xy] = float4(newA, 0, newB, 1.0);
+    SetValue(id.xy, newA, newB);
 }
