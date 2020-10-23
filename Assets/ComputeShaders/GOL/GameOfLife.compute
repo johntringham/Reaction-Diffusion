@@ -1,0 +1,58 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+#pragma kernel CSResetGrid
+
+#include "..\..\Compute\NoiseInclude.compute"
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+int TexSize;
+int RandOffset;
+
+Texture2D<float4> Prev;
+RWTexture2D<float4> Result;
+
+[numthreads(8, 8, 1)]
+void CSResetGrid(uint3 id : SV_DispatchThreadID)
+{
+    if (wang_hash(id.x + id.y * 1000 + RandOffset) & 1) {
+        Result[id.xy] = float4(1,1,1,1);
+    }
+    else {
+        Result[id.xy] = float4(0,0,0,0);
+    }
+}
+
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    // TODO: insert actual code here!
+
+    float cellValue = Prev[id.xy];
+
+    float neighbors =
+        Prev[id.xy + int2(-1, -1)] +
+        Prev[id.xy + int2(-1, 0)] +
+        Prev[id.xy + int2(-1, 1)] +
+        Prev[id.xy + int2(0, -1)] +
+        Prev[id.xy + int2(0, 1)] +
+        Prev[id.xy + int2(1, -1)] +
+        Prev[id.xy + int2(1, 0)] +
+        Prev[id.xy + int2(1, 1)];
+
+    float newValue = cellValue.r;
+    if (cellValue.r > 0.5) {
+        if(neighbors.r < 1.9 || neighbors.r > 3.1){
+            newValue = 0;
+        }
+    }else{
+        if(neighbors.r > 2.9 && neighbors.r < 3.1){
+            newValue = 1;
+        }
+    }
+
+    Result[id.xy] = float4(newValue, newValue, newValue, newValue);
+}
+
+

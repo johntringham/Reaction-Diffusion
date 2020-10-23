@@ -1,0 +1,172 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+#pragma kernel CSResetGrid
+
+#include "..\..\Compute\NoiseInclude.compute"
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+int TexSize;
+float Radius;
+
+float Kill;
+float Feed;
+float ADiffusionRate;
+float BDiffusionRate;
+
+float DeltaTime;
+
+Texture2D<float4> Prev;
+RWTexture2D<float4> Result;
+
+// static const float3x3 laplacian = float3x3(0.05, 0.2,  0.05,
+//                                            0.2,   -1,   0.2, 
+//                                            0.05, 0.2, 0.05);
+// static const float3x3 laplacian = float3x3(1, 1,  1,
+//                                            1,   -1,   1, 
+//                                            1, 1, 1);
+
+// static const float3x3 laplacian = float3x3(1,1,1,1,1,1,1,1,1);
+
+[numthreads(8, 8, 1)]
+void CSResetGrid(uint3 id : SV_DispatchThreadID)
+{
+    float2 distanceFromCenter = float2((TexSize * 0.5) - id.x, (TexSize * 0.5) - id.y);
+
+    if(abs(distanceFromCenter.x) < Radius &&  abs(distanceFromCenter.y) < Radius){
+        Result[id.xy] = float4(1, 0, 1, 0);
+    }else{
+        Result[id.xy] = float4(1, 0, 0, 0);
+    }
+
+    // distanceFromCenter = float2((TexSize * 0.25) - id.x, (TexSize * 0.5) - id.y);
+
+    //  if(abs(distanceFromCenter.x) < Radius &&  abs(distanceFromCenter.y) < Radius){
+    //      Result[id.xy] = float4(1, 0, 1, 0);
+    //  }
+
+    // float r = clamp(1 + cos(id.x * 0.01), 0, 1);
+    // float b = clamp(1 + sin(id.y * 0.005 + id.x * 0.03), 0, 1);
+
+    // Result[id.xy] = float4(r + 0.5, 0, b, 1);
+
+    // Result[id.xy] = float4(wang_hash(14 + id.x + id.y * 1000 + 1), wang_hash(123 + id.x + id.y * 1000 ), wang_hash(155 * id.x + id.y * 1000 + 3), 1);
+}
+
+// float4 convolve(int2 position)
+// {
+//     // int2 up = position + int2(0, -1);
+//     // int2 down = position + int2(0, 1);
+//     // int2 left = position + int2(0, 1);
+//     // int2 right = position + int2(0, 1);
+    
+//     // return (Prev[position] * 0.5) + (Prev[up] * 0.25) + (Prev[down] * 0.25); 
+
+//     return  (Prev[(position.xy + int2(-1, -1)) % (TexSize - 2)] * laplacian._11 +
+//             Prev[(position.xy + int2(-1, 0) ) % (TexSize - 2)] * laplacian._12 +
+//             Prev[(position.xy + int2(-1, 1) ) % (TexSize - 2)] * laplacian._13 +
+//             Prev[(position.xy + int2(0, -1) ) % (TexSize - 2)] * laplacian._21 +
+//             Prev[(position.xy + int2(0, 0)  ) % (TexSize - 2)] * laplacian._22 +
+//             Prev[(position.xy + int2(0, 1)  ) % (TexSize - 2)] * laplacian._23 +
+//             Prev[(position.xy + int2(1, -1) ) % (TexSize - 2)] * laplacian._31 +
+//             Prev[(position.xy + int2(1, 0)  ) % (TexSize - 2)] * laplacian._32 +
+//             Prev[(position.xy + int2(1, 1)  ) % (TexSize - 2)] * laplacian._33 );
+// }
+
+float4 ReadBitmapValue(int2 position){
+    int2 wrappedPos = int2((position.x+TexSize) % TexSize, (position.y+TexSize) % TexSize);
+    return Prev[wrappedPos];
+}
+
+float convolve2(int2 position, int index)
+{
+    // return  ReadBitmapValue(position.xy + int2(-1, -1))[index] * laplacian._11 +
+    //         ReadBitmapValue(position.xy + int2(-1, 0) )[index] * laplacian._12 +
+    //         ReadBitmapValue(position.xy + int2(-1, 1) )[index] * laplacian._13 +
+    //         ReadBitmapValue(position.xy + int2(0, -1) )[index] * laplacian._21 +
+    //         ReadBitmapValue(position.xy + int2(0, 0)  )[index] * laplacian._22 +
+    //         ReadBitmapValue(position.xy + int2(0, 1)  )[index] * laplacian._23 +
+    //         ReadBitmapValue(position.xy + int2(1, -1) )[index] * laplacian._31 +
+    //         ReadBitmapValue(position.xy + int2(1, 0)  )[index] * laplacian._32 +
+    //         ReadBitmapValue(position.xy + int2(1, 1)  )[index] * laplacian._33;
+
+    return  
+            ReadBitmapValue(position.xy + int2(-1, -1))[index] * 0.05 +
+            ReadBitmapValue(position.xy + int2(1, -1) )[index] * 0.05 +
+            ReadBitmapValue(position.xy + int2(-1, 1) )[index] * 0.05 +
+            ReadBitmapValue(position.xy + int2(1, 1)  )[index] * 0.05 +
+
+            ReadBitmapValue(position.xy + int2(-1, 0) )[index] * 0.2 +
+            ReadBitmapValue(position.xy + int2(0, -1) )[index] * 0.2 +
+            ReadBitmapValue(position.xy + int2(0, 1)  )[index] * 0.2 +
+            ReadBitmapValue(position.xy + int2(1, 0)  )[index] * 0.2 +
+
+            ReadBitmapValue(position.xy)[index] * -1;
+}
+
+float convolveA(int2 position)
+{
+    return  
+        ReadBitmapValue(position.xy + int2(-1, -1)).r * 0.05 +
+        ReadBitmapValue(position.xy + int2(1, -1) ).r * 0.05 +
+        ReadBitmapValue(position.xy + int2(-1, 1) ).r * 0.05 +
+        ReadBitmapValue(position.xy + int2(1, 1)  ).r * 0.05 +
+        ReadBitmapValue(position.xy + int2(-1, 0) ).r * 0.2 +
+        ReadBitmapValue(position.xy + int2(0, -1) ).r * 0.2 +
+        ReadBitmapValue(position.xy + int2(0, 1)  ).r * 0.2 +
+        ReadBitmapValue(position.xy + int2(1, 0)  ).r * 0.2 +
+        ReadBitmapValue(position.xy).r * -1;
+}
+
+float convolveB(int2 position)
+{
+    return  
+        ReadBitmapValue(position.xy + int2(-1, -1)).b * 0.05 +
+        ReadBitmapValue(position.xy + int2(1, -1) ).b * 0.05 +
+        ReadBitmapValue(position.xy + int2(-1, 1) ).b * 0.05 +
+        ReadBitmapValue(position.xy + int2(1, 1)  ).b * 0.05 +
+        ReadBitmapValue(position.xy + int2(-1, 0) ).b * 0.2 +
+        ReadBitmapValue(position.xy + int2(0, -1) ).b * 0.2 +
+        ReadBitmapValue(position.xy + int2(0, 1)  ).b * 0.2 +
+        ReadBitmapValue(position.xy + int2(1, 0)  ).b * 0.2 +
+        ReadBitmapValue(position.xy).b * -1;
+}
+
+[numthreads(8, 8, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    float4 current = ReadBitmapValue(id.xy);
+    
+    float A = clamp(current.r, 0, 1);
+    float B = clamp(current.b, 0, 1);
+
+    float abSquared = A * B * B;    
+    
+    float4 convoledA = convolveA(id.xy);
+    float4 convoledB = convolveB(id.xy);
+
+    float newA = A
+                 + ((ADiffusionRate * convoledA)
+                 - abSquared
+                 + (Feed * (1-A))) * DeltaTime;
+
+    float newB = B
+                 + ((BDiffusionRate * convoledB)
+                 + abSquared
+                 - ((Feed + Kill) * B)) * DeltaTime;
+
+    float r = clamp(newA, 0, 1);
+    float b = clamp(newB, 0, 1);
+
+    float4 newValue = float4(0,0,0,0);
+    newValue.r = r;
+    newValue.b = b;
+    newValue.a = 1;
+
+    Result[id.xy] = newValue; 
+
+    // float4 convoled = convolve(id.xy);
+    // float4 current = Prev[id.xy];
+
+    // Result[id.xy] = current + current * convoled;
+}
