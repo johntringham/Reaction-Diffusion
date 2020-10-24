@@ -150,11 +150,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 503677061}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 426333307a316bd469a4061dac1eb027, type: 3}
+  m_Script: {fileID: 11500000, guid: 78a6cbb9ca3c9f0428e1e1a6c2796d0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Shader: {fileID: 7200000, guid: f5bef78e3f070c44fb8be8dc5b66cacc, type: 3}
-  TexResolution: 512
+  Shader: {fileID: 7200000, guid: 193143e3da46773458c5c6ffc184bc44, type: 3}
+  TexResolution: 2048
+  StartingRadius: 200
+  Kill: 0.062
+  Feed: 0.055
+  ADiffusionRate: 1
+  BDiffusionRate: 0.5
+  DeltaTime: 1
 --- !u!64 &503677063
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -512,7 +518,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 0.93
+  orthographic size: 0.48
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -536,7 +542,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1687258581}
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 3.48, y: 1.18, z: 3.721}
+  m_LocalPosition: {x: 3.48, y: 1.332, z: 3.509}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}

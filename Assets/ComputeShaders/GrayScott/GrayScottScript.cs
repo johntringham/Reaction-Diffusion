@@ -76,6 +76,12 @@ public class GrayScottScript : MonoBehaviour
         Shader.SetBuffer(kernelHandle, "Current", CurrentBuffer);
         Shader.SetBuffer(kernelHandle, "Prev", PreviousBuffer);
 
+        Shader.SetFloat("Kill", this.Kill);
+        Shader.SetFloat("Feed", this.Feed);
+        Shader.SetFloat("ADiffusionRate", this.ADiffusionRate);
+        Shader.SetFloat("BDiffusionRate", this.BDiffusionRate);
+        Shader.SetFloat("DeltaTime", this.DeltaTime);
+
         Shader.SetTexture(kernelHandle, "Bitmap", renderTexture);
 
         Shader.Dispatch(kernelHandle, TexResolution / 8, TexResolution / 8, 1);
