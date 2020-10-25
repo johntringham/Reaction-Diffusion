@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 2138677392}
-  m_IndirectSpecularColor: {r: 0.28502697, g: 0.37139347, b: 0.49601266, a: 1}
+  m_IndirectSpecularColor: {r: 0.28502667, g: 0.37139323, b: 0.49600998, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -156,6 +156,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Shader: {fileID: 7200000, guid: 193143e3da46773458c5c6ffc184bc44, type: 3}
   TexResolution: 512
+  targetMaterial: {fileID: 2100000, guid: 70731a3df2ba6f8489e4786869167f61, type: 2}
   StartingRadius: 200
   Kill: 0.062
   Feed: 0.055
@@ -172,7 +173,7 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 3
+  serializedVersion: 4
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
@@ -252,7 +253,7 @@ MonoBehaviour:
   DebugPrinting: 1
   ShowAllKnobs: 1
   ShowNotePresses: 0
-  Mappings:
+  KnobMappings:
   - Target: {fileID: 503677062}
     PropertyName: Kill
     Range: {x: 0.03, y: 0.09}
@@ -357,7 +358,7 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 3
+  serializedVersion: 4
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}

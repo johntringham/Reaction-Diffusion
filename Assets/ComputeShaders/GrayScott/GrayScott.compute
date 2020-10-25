@@ -1,11 +1,14 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 #pragma kernel CSResetGrid
+#pragma kernel CSResetGridToCircle
 
 #include "..\..\Compute\NoiseInclude.compute"
 
 int TexSize;
 float Radius;
+
+float3x3 laplacian;
 
 float Kill;
 float Feed;
@@ -25,7 +28,14 @@ RWStructuredBuffer<GrayScottStruct> Prev;
 RWTexture2D<float4> Bitmap;
 
 GrayScottStruct GetValue(int2 position){
-    return Prev[position.x + (position.y * TexSize)];
+    int x = (position.x + TexSize) % TexSize;
+    int y = (position.y + TexSize) % TexSize;
+    return Prev[x + (y * TexSize)];
+}
+
+float2 GetValueAsFloat2(int2 position){
+    GrayScottStruct val = GetValue(position);
+    return float2(val.A, val.B);
 }
 
 void SetValue(int2 position, float a, float b){
@@ -51,40 +61,33 @@ void CSResetGrid(uint3 id : SV_DispatchThreadID)
     }else{
         SetValue(id.xy, 1, 1);
     }
-
-    // distanceFromCenter = float2((TexSize * 0.25) - id.x, (TexSize * 0.5) - id.y);
-
-    //  if(abs(distanceFromCenter.x) < Radius &&  abs(distanceFromCenter.y) < Radius){
-    //      Result[id.xy] = float4(1, 0, 1, 0);
-    //  }
-
-    // float r = clamp(1 + cos(id.x * 0.01), 0, 1);
-    // float b = clamp(1 + sin(id.y * 0.005 + id.x * 0.03), 0, 1);
-
-    // Result[id.xy] = float4(r + 0.5, 0, b, 1);
-
-    // Result[id.xy] = float4(wang_hash(14 + id.x + id.y * 1000 + 1), wang_hash(123 + id.x + id.y * 1000 ), wang_hash(155 * id.x + id.y * 1000 + 3), 1);
 }
 
-// float4 convolve(int2 position)
-// {
-//     // int2 up = position + int2(0, -1);
-//     // int2 down = position + int2(0, 1);
-//     // int2 left = position + int2(0, 1);
-//     // int2 right = position + int2(0, 1);
-    
-//     // return (Prev[position] * 0.5) + (Prev[up] * 0.25) + (Prev[down] * 0.25); 
+[numthreads(8, 8, 1)]
+void CSResetGridToCircle(uint3 id : SV_DispatchThreadID)
+{
+    float2 distanceFromCenter = float2((TexSize * 0.5) - id.x, (TexSize * 0.5) - id.y);
 
-//     return  (Prev[(position.xy + int2(-1, -1)) % (TexSize - 2)] * laplacian._11 +
-//             Prev[(position.xy + int2(-1, 0) ) % (TexSize - 2)] * laplacian._12 +
-//             Prev[(position.xy + int2(-1, 1) ) % (TexSize - 2)] * laplacian._13 +
-//             Prev[(position.xy + int2(0, -1) ) % (TexSize - 2)] * laplacian._21 +
-//             Prev[(position.xy + int2(0, 0)  ) % (TexSize - 2)] * laplacian._22 +
-//             Prev[(position.xy + int2(0, 1)  ) % (TexSize - 2)] * laplacian._23 +
-//             Prev[(position.xy + int2(1, -1) ) % (TexSize - 2)] * laplacian._31 +
-//             Prev[(position.xy + int2(1, 0)  ) % (TexSize - 2)] * laplacian._32 +
-//             Prev[(position.xy + int2(1, 1)  ) % (TexSize - 2)] * laplacian._33 );
-// }
+    if(length(distanceFromCenter) < Radius){
+        SetValue(id.xy, 1, 0);
+    }else{
+        SetValue(id.xy, 1, 1);
+    }
+}
+
+
+float2 convolve(int2 position)
+{
+    return (GetValueAsFloat2((position.xy + int2(-1, -1)) * laplacian._11) +
+            GetValueAsFloat2((position.xy + int2(-1, 0) ) * laplacian._12) +
+            GetValueAsFloat2((position.xy + int2(-1, 1) ) * laplacian._13) +
+            GetValueAsFloat2((position.xy + int2(0, -1) ) * laplacian._21) +
+            GetValueAsFloat2((position.xy + int2(0, 0)  ) * laplacian._22) +
+            GetValueAsFloat2((position.xy + int2(0, 1)  ) * laplacian._23) +
+            GetValueAsFloat2((position.xy + int2(1, -1) ) * laplacian._31) +
+            GetValueAsFloat2((position.xy + int2(1, 0)  ) * laplacian._32) +
+            GetValueAsFloat2((position.xy + int2(1, 1)  ) * laplacian._33));
+}
 
 // float4 ReadBitmapValue(int2 position){
 //     int2 wrappedPos = int2((position.x+TexSize) % TexSize, (position.y+TexSize) % TexSize);

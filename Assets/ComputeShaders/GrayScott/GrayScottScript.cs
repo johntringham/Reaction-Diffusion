@@ -17,7 +17,9 @@ public class GrayScottScript : MonoBehaviour
     public ComputeShader Shader;
     public int TexResolution = 512;
 
-    protected Renderer renderer;
+    public Material targetMaterial;
+
+    //protected Renderer renderer;
     protected RenderTexture renderTexture;
     //protected RenderTexture renderTexture2;
     protected int currentBufferIndex = 0;
@@ -38,7 +40,7 @@ public class GrayScottScript : MonoBehaviour
     private ComputeBuffer CurrentBuffer => currentBufferIndex % 2 == 0 ? buffer1 : buffer2;
     private ComputeBuffer PreviousBuffer => currentBufferIndex % 2 == 1 ? buffer1 : buffer2;
 
-    public void ResetGrid()
+    public void ResetGridAndRunKernel(string kernel)
     {
         buffer1 = new ComputeBuffer(TexResolution * TexResolution, sizeof(float) * 2);
         var data = Enumerable.Repeat(new GrayScottStruct(), TexResolution * TexResolution).ToArray();
@@ -47,7 +49,6 @@ public class GrayScottScript : MonoBehaviour
         buffer2 = new ComputeBuffer(TexResolution * TexResolution, sizeof(float) * 2);
         buffer2.SetData(data);
 
-        int kernelHandle = Shader.FindKernel("CSResetGrid");
         Shader.SetFloat("Radius", StartingRadius);
         Shader.SetInt("TexSize", TexResolution);
 
@@ -57,14 +58,25 @@ public class GrayScottScript : MonoBehaviour
         Shader.SetFloat("BDiffusionRate", this.BDiffusionRate);
         Shader.SetFloat("DeltaTime", this.DeltaTime);
 
+        int kernelHandle = Shader.FindKernel(kernel);
         Shader.SetTexture(kernelHandle, "Bitmap", renderTexture);
 
         Shader.SetBuffer(kernelHandle, "Current", CurrentBuffer);
         Shader.SetBuffer(kernelHandle, "Prev", PreviousBuffer);
 
         Shader.Dispatch(kernelHandle, TexResolution / 8, TexResolution / 8, 1);
-        
-        renderer.material.SetTexture("_BaseMap", renderTexture);
+
+        targetMaterial.SetTexture("_BaseMap", renderTexture);
+    }
+
+    public void ResetGrid()
+    {
+        ResetGridAndRunKernel("CSResetGrid");
+    }
+
+    public void ResetGridToCircle()
+    {
+        ResetGridAndRunKernel("CSResetGridToCircle");
     }
 
     private void UpdateTextureFromCompute()
@@ -86,7 +98,7 @@ public class GrayScottScript : MonoBehaviour
 
         Shader.Dispatch(kernelHandle, TexResolution / 8, TexResolution / 8, 1);
         
-        renderer.material.SetTexture("_BaseMap", renderTexture);
+        targetMaterial.SetTexture("_BaseMap", renderTexture);
     }
 
     // Start is called before the first frame update
@@ -101,31 +113,15 @@ public class GrayScottScript : MonoBehaviour
         this.renderTexture.wrapModeV = TextureWrapMode.Clamp;
         this.renderTexture.Create();
 
-        //this.renderTexture2 = new RenderTexture(TexResolution, TexResolution, 24);
-        //this.renderTexture2.enableRandomWrite = true;
-        //this.renderTexture2.antiAliasing = 1;
-        //this.renderTexture2.filterMode = FilterMode.Point;
-        //this.renderTexture.wrapMode = TextureWrapMode.Clamp;
-        //this.renderTexture.wrapModeU = TextureWrapMode.Clamp;
-        //this.renderTexture.wrapModeV = TextureWrapMode.Clamp;
-        //this.renderTexture2.Create();
-
-        this.renderer = GetComponent<Renderer>();
-        renderer.enabled = true;
-
         ResetGrid();
     }
 
-    // Update is called once per frame
     void Update()
     {
-        //if (Input.GetKeyDown(KeyCode.Space) || Input.GetKey(KeyCode.Return))
-        //{
-            UpdateTextureFromCompute();
-            UpdateTextureFromCompute();
-            UpdateTextureFromCompute();
-            UpdateTextureFromCompute();
-        //}
+        UpdateTextureFromCompute();
+        UpdateTextureFromCompute();
+        UpdateTextureFromCompute();
+        UpdateTextureFromCompute();
     }
 }
 

@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class MidiValueChanger : MonoBehaviour
@@ -11,7 +12,8 @@ public class MidiValueChanger : MonoBehaviour
     public bool ShowAllKnobs = false;
     public bool ShowNotePresses = true;
 
-    public MidiKnobMapping[] Mappings;
+    public MidiKnobMapping[] KnobMappings;
+    public MidiButtonMapping[] ButtonMappings;
 
     // Start is called before the first frame update
     void Start()
@@ -26,12 +28,10 @@ public class MidiValueChanger : MonoBehaviour
         foreach (var knob in knobNumbers)
         {
             var value = MidiMaster.GetKnob(knob);
-            Debug.Log("knob num: "+knob+", lenght"+Mappings.Length);
 
-            if (knob-1 < Mappings.Length)
+            if (knob-1 < KnobMappings.Length)
             {
-                Debug.Log("???");
-                Mappings[knob-1].Update(value);
+                KnobMappings[knob-1].Update(value);
             }
         }
     }
@@ -41,6 +41,12 @@ public class MidiValueChanger : MonoBehaviour
         if (this.ShowNotePresses)
         {
             Debug.Log("Note " + note + " = " + value);
+        }
+
+        var mapping = this.ButtonMappings.FirstOrDefault(b => b.NoteNumber == note);
+        if(mapping != null)
+        {
+            mapping.Execute();
         }
     }
 
@@ -65,10 +71,26 @@ public class MidiKnobMapping
     {
         var targetType = Target.GetType();
         var targetProperty = targetType.GetField(PropertyName);
-
         var lerpedValue = Mathf.Lerp(this.Range.x, this.Range.y, value);
-        Debug.Log(lerpedValue);
-
+        
         targetProperty.SetValue(Target, lerpedValue);
+    }
+}
+
+[Serializable]
+public class MidiButtonMapping
+{
+    public MonoBehaviour Target;
+
+    public string MethodName;
+
+    public int NoteNumber;
+
+    public void Execute()
+    {
+        var targetType = Target.GetType();
+        var targetMethod = targetType.GetMethod(MethodName);
+
+        targetMethod.Invoke(Target, new object[] { });
     }
 }
