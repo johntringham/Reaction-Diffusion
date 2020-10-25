@@ -71,8 +71,17 @@ public class GrayScottScript : MonoBehaviour
         Shader.SetFloat("BDiffusionRate", this.BDiffusionRate);
         Shader.SetFloat("DeltaTime", this.DeltaTime);
 
-        float[] laplace = this.LaplacianMatrix.SelectMany(v => new[] { v.x, v.y, v.z }).ToArray();
-        Shader.SetFloats("laplacian", laplace);
+        //float[] laplace = this.LaplacianMatrix.SelectMany(v => new[] { 
+        //    v.x, v.x, v.x, v.x, 
+        //    v.y, v.y, v.y, v.y,
+        //    v.z, v.z, v.z, v.z
+        //}).ToArray();
+
+        Shader.SetFloats("laplacianR1", this.LaplacianMatrix[0].x, this.LaplacianMatrix[0].y, this.LaplacianMatrix[0].z);
+        Shader.SetFloats("laplacianR2", this.LaplacianMatrix[1].x, this.LaplacianMatrix[1].y, this.LaplacianMatrix[1].z);
+        Shader.SetFloats("laplacianR3", this.LaplacianMatrix[2].x, this.LaplacianMatrix[2].y, this.LaplacianMatrix[2].z);
+
+        //Shader.SetFloats("laplacian", laplace);
     }
 
     public void ResetGrid()

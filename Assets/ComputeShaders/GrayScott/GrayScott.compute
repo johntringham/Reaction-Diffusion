@@ -8,7 +8,17 @@
 int TexSize;
 float Radius;
 
-float3 laplacian[3];
+// having some pretty horrendous issues with passing through arrays - looks like this area is just pretty pants
+// when it comes to SetFloats in unity (eg https://cmwdexint.com/2017/12/04/computeshader-setfloats/)
+// Resorting to this as it's a pretty small thing anyway 
+float3 laplacianR1;// = 
+float3 laplacianR2;// = 
+float3 laplacianR3;// = 
+    // {
+    //     float3(0.05, 0.2,  0.05), 
+    //     float3(0.2,  -1.0, 0.2),
+    //     float3(0.05, 0.2,  0.05)
+    // };
 
 float Kill;
 float Feed;
@@ -78,15 +88,17 @@ void CSResetGridToCircle(uint3 id : SV_DispatchThreadID)
 
 float2 convolve(int2 position)
 {
-    return (GetValueAsFloat2(position.xy + int2(-1, -1)) * laplacian[0][0]) +
-           (GetValueAsFloat2(position.xy + int2(-1, 0) ) * laplacian[0][1]) +
-           (GetValueAsFloat2(position.xy + int2(-1, 1) ) * laplacian[0][2]) +
-           (GetValueAsFloat2(position.xy + int2(0, -1) ) * laplacian[1][0]) +
-           (GetValueAsFloat2(position.xy + int2(0, 0)  ) * laplacian[1][1]) +
-           (GetValueAsFloat2(position.xy + int2(0, 1)  ) * laplacian[1][2]) +
-           (GetValueAsFloat2(position.xy + int2(1, -1) ) * laplacian[2][0]) +
-           (GetValueAsFloat2(position.xy + int2(1, 0)  ) * laplacian[2][1]) +
-           (GetValueAsFloat2(position.xy + int2(1, 1)  ) * laplacian[2][2]);
+    return (GetValueAsFloat2(position.xy + int2(-1, -1)) * laplacianR1.x) +
+           (GetValueAsFloat2(position.xy + int2(-1, 0) ) * laplacianR1.y) +
+           (GetValueAsFloat2(position.xy + int2(-1, 1) ) * laplacianR1.z) +
+
+           (GetValueAsFloat2(position.xy + int2(0, -1) ) * laplacianR2.x) +
+           (GetValueAsFloat2(position.xy               ) * laplacianR2.y) +
+           (GetValueAsFloat2(position.xy + int2(0, 1)  ) * laplacianR2.z) +
+           
+           (GetValueAsFloat2(position.xy + int2(1, -1) ) * laplacianR3.x) +
+           (GetValueAsFloat2(position.xy + int2(1, 0)  ) * laplacianR3.y) +
+           (GetValueAsFloat2(position.xy + int2(1, 1)  ) * laplacianR3.z);
 }
 
 [numthreads(8, 8, 1)]
