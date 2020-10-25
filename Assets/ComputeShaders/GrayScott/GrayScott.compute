@@ -8,7 +8,7 @@
 int TexSize;
 float Radius;
 
-float3x3 laplacian;
+float3 laplacian[3];
 
 float Kill;
 float Feed;
@@ -78,114 +78,16 @@ void CSResetGridToCircle(uint3 id : SV_DispatchThreadID)
 
 float2 convolve(int2 position)
 {
-    return (GetValueAsFloat2((position.xy + int2(-1, -1)) * laplacian._11) +
-            GetValueAsFloat2((position.xy + int2(-1, 0) ) * laplacian._12) +
-            GetValueAsFloat2((position.xy + int2(-1, 1) ) * laplacian._13) +
-            GetValueAsFloat2((position.xy + int2(0, -1) ) * laplacian._21) +
-            GetValueAsFloat2((position.xy + int2(0, 0)  ) * laplacian._22) +
-            GetValueAsFloat2((position.xy + int2(0, 1)  ) * laplacian._23) +
-            GetValueAsFloat2((position.xy + int2(1, -1) ) * laplacian._31) +
-            GetValueAsFloat2((position.xy + int2(1, 0)  ) * laplacian._32) +
-            GetValueAsFloat2((position.xy + int2(1, 1)  ) * laplacian._33));
+    return (GetValueAsFloat2(position.xy + int2(-1, -1)) * laplacian[0][0]) +
+           (GetValueAsFloat2(position.xy + int2(-1, 0) ) * laplacian[0][1]) +
+           (GetValueAsFloat2(position.xy + int2(-1, 1) ) * laplacian[0][2]) +
+           (GetValueAsFloat2(position.xy + int2(0, -1) ) * laplacian[1][0]) +
+           (GetValueAsFloat2(position.xy + int2(0, 0)  ) * laplacian[1][1]) +
+           (GetValueAsFloat2(position.xy + int2(0, 1)  ) * laplacian[1][2]) +
+           (GetValueAsFloat2(position.xy + int2(1, -1) ) * laplacian[2][0]) +
+           (GetValueAsFloat2(position.xy + int2(1, 0)  ) * laplacian[2][1]) +
+           (GetValueAsFloat2(position.xy + int2(1, 1)  ) * laplacian[2][2]);
 }
-
-// float4 ReadBitmapValue(int2 position){
-//     int2 wrappedPos = int2((position.x+TexSize) % TexSize, (position.y+TexSize) % TexSize);
-//     return Prev[wrappedPos];
-// }
-
-// float convolve2(int2 position, int index)
-// {
-//     // return  ReadBitmapValue(position.xy + int2(-1, -1))[index] * laplacian._11 +
-//     //         ReadBitmapValue(position.xy + int2(-1, 0) )[index] * laplacian._12 +
-//     //         ReadBitmapValue(position.xy + int2(-1, 1) )[index] * laplacian._13 +
-//     //         ReadBitmapValue(position.xy + int2(0, -1) )[index] * laplacian._21 +
-//     //         ReadBitmapValue(position.xy + int2(0, 0)  )[index] * laplacian._22 +
-//     //         ReadBitmapValue(position.xy + int2(0, 1)  )[index] * laplacian._23 +
-//     //         ReadBitmapValue(position.xy + int2(1, -1) )[index] * laplacian._31 +
-//     //         ReadBitmapValue(position.xy + int2(1, 0)  )[index] * laplacian._32 +
-//     //         ReadBitmapValue(position.xy + int2(1, 1)  )[index] * laplacian._33;
-
-//     return  
-//             ReadBitmapValue(position.xy + int2(-1, -1))[index] * 0.05 +
-//             ReadBitmapValue(position.xy + int2(1, -1) )[index] * 0.05 +
-//             ReadBitmapValue(position.xy + int2(-1, 1) )[index] * 0.05 +
-//             ReadBitmapValue(position.xy + int2(1, 1)  )[index] * 0.05 +
-
-//             ReadBitmapValue(position.xy + int2(-1, 0) )[index] * 0.2 +
-//             ReadBitmapValue(position.xy + int2(0, -1) )[index] * 0.2 +
-//             ReadBitmapValue(position.xy + int2(0, 1)  )[index] * 0.2 +
-//             ReadBitmapValue(position.xy + int2(1, 0)  )[index] * 0.2 +
-
-//             ReadBitmapValue(position.xy)[index] * -1;
-// }
-
-// float convolveA(int2 position)
-// {
-//     return  
-//         ReadBitmapValue(position.xy + int2(-1, -1)).r * 0.05 +
-//         ReadBitmapValue(position.xy + int2(1, -1) ).r * 0.05 +
-//         ReadBitmapValue(position.xy + int2(-1, 1) ).r * 0.05 +
-//         ReadBitmapValue(position.xy + int2(1, 1)  ).r * 0.05 +
-//         ReadBitmapValue(position.xy + int2(-1, 0) ).r * 0.2 +
-//         ReadBitmapValue(position.xy + int2(0, -1) ).r * 0.2 +
-//         ReadBitmapValue(position.xy + int2(0, 1)  ).r * 0.2 +
-//         ReadBitmapValue(position.xy + int2(1, 0)  ).r * 0.2 +
-//         ReadBitmapValue(position.xy).r * -1;
-// }
-
-// float convolveB(int2 position)
-// {
-//     return  
-//         ReadBitmapValue(position.xy + int2(-1, -1)).b * 0.05 +
-//         ReadBitmapValue(position.xy + int2(1, -1) ).b * 0.05 +
-//         ReadBitmapValue(position.xy + int2(-1, 1) ).b * 0.05 +
-//         ReadBitmapValue(position.xy + int2(1, 1)  ).b * 0.05 +
-//         ReadBitmapValue(position.xy + int2(-1, 0) ).b * 0.2 +
-//         ReadBitmapValue(position.xy + int2(0, -1) ).b * 0.2 +
-//         ReadBitmapValue(position.xy + int2(0, 1)  ).b * 0.2 +
-//         ReadBitmapValue(position.xy + int2(1, 0)  ).b * 0.2 +
-//         ReadBitmapValue(position.xy).b * -1;
-// }
-
-// [numthreads(8, 8, 1)]
-// void CSMain(uint3 id : SV_DispatchThreadID)
-// {
-//     float4 current = ReadBitmapValue(id.xy);
-    
-//     float A = clamp(current.r, 0, 1);
-//     float B = clamp(current.b, 0, 1);
-
-//     float abSquared = A * B * B;    
-    
-//     float4 convoledA = convolveA(id.xy);
-//     float4 convoledB = convolveB(id.xy);
-
-//     float newA = A
-//                  + ((ADiffusionRate * convoledA)
-//                  - abSquared
-//                  + (Feed * (1-A))) * DeltaTime;
-
-//     float newB = B
-//                  + ((BDiffusionRate * convoledB)
-//                  + abSquared
-//                  - ((Feed + Kill) * B)) * DeltaTime;
-
-//     float r = clamp(newA, 0, 1);
-//     float b = clamp(newB, 0, 1);
-
-//     float4 newValue = float4(0,0,0,0);
-//     newValue.r = r;
-//     newValue.b = b;
-//     newValue.a = 1;
-
-//     Result[id.xy] = newValue; 
-
-//     // float4 convoled = convolve(id.xy);
-//     // float4 current = Prev[id.xy];
-
-//     // Result[id.xy] = current + current * convoled;
-// }
 
 [numthreads(8, 8, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
@@ -198,27 +100,9 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     float a = spot.A;
     float b = spot.B;
 
-    float laplaceA = 0.0;
-    laplaceA += a* (-1.0);
-    laplaceA += GetValue(int2(i+1, j  )).A*0.2;
-    laplaceA += GetValue(int2(i-1, j  )).A*0.2;
-    laplaceA += GetValue(int2(i  , j+1)).A*0.2;
-    laplaceA += GetValue(int2(i  , j-1)).A*0.2;
-    laplaceA += GetValue(int2(i-1, j-1)).A*0.05;
-    laplaceA += GetValue(int2(i+1, j-1)).A*0.05;
-    laplaceA += GetValue(int2(i-1, j+1)).A*0.05;
-    laplaceA += GetValue(int2(i+1, j+1)).A*0.05;
-
-    float laplaceB = 0.0;
-    laplaceB += b*(-1.0);
-    laplaceB += GetValue(int2(i+1, j  )).B*0.2;
-    laplaceB += GetValue(int2(i-1, j  )).B*0.2;
-    laplaceB += GetValue(int2(i  , j+1)).B*0.2;
-    laplaceB += GetValue(int2(i  , j-1)).B*0.2;
-    laplaceB += GetValue(int2(i-1, j-1)).B*0.05;
-    laplaceB += GetValue(int2(i+1, j-1)).B*0.05;
-    laplaceB += GetValue(int2(i-1, j+1)).B*0.05;
-    laplaceB += GetValue(int2(i+1, j+1)).B*0.05;
+    float2 laplace = convolve(id.xy);
+    float laplaceA = laplace.x;
+    float laplaceB = laplace.y;
 
     float newA = a + (ADiffusionRate*laplaceA - a*b*b + Feed*(1.0-a))*1.0;
     float newB = b + (BDiffusionRate*laplaceB + a*b*b - (Kill+Feed)*b)*1.0;

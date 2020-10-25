@@ -14,18 +14,16 @@ public class GrayScottScript : MonoBehaviour
         float B;
     }
 
+    public Vector3[] LaplacianMatrix;
+
     public ComputeShader Shader;
     public int TexResolution = 512;
 
     public Material targetMaterial;
 
-    //protected Renderer renderer;
     protected RenderTexture renderTexture;
-    //protected RenderTexture renderTexture2;
     protected int currentBufferIndex = 0;
-    //protected RenderTexture currentTexture => currentTextureIndex % 2 == 0 ? renderTexture : renderTexture2;
-    //protected RenderTexture previousTexture => currentTextureIndex % 2 == 1 ? renderTexture : renderTexture2;
-
+    
     public float StartingRadius = 30;
 
     public float Kill;
@@ -52,11 +50,7 @@ public class GrayScottScript : MonoBehaviour
         Shader.SetFloat("Radius", StartingRadius);
         Shader.SetInt("TexSize", TexResolution);
 
-        Shader.SetFloat("Kill", this.Kill);
-        Shader.SetFloat("Feed", this.Feed);
-        Shader.SetFloat("ADiffusionRate", this.ADiffusionRate);
-        Shader.SetFloat("BDiffusionRate", this.BDiffusionRate);
-        Shader.SetFloat("DeltaTime", this.DeltaTime);
+        SetShaderValues();
 
         int kernelHandle = Shader.FindKernel(kernel);
         Shader.SetTexture(kernelHandle, "Bitmap", renderTexture);
@@ -67,6 +61,18 @@ public class GrayScottScript : MonoBehaviour
         Shader.Dispatch(kernelHandle, TexResolution / 8, TexResolution / 8, 1);
 
         targetMaterial.SetTexture("_BaseMap", renderTexture);
+    }
+
+    private void SetShaderValues()
+    {
+        Shader.SetFloat("Kill", this.Kill);
+        Shader.SetFloat("Feed", this.Feed);
+        Shader.SetFloat("ADiffusionRate", this.ADiffusionRate);
+        Shader.SetFloat("BDiffusionRate", this.BDiffusionRate);
+        Shader.SetFloat("DeltaTime", this.DeltaTime);
+
+        float[] laplace = this.LaplacianMatrix.SelectMany(v => new[] { v.x, v.y, v.z }).ToArray();
+        Shader.SetFloats("laplacian", laplace);
     }
 
     public void ResetGrid()
@@ -88,14 +94,9 @@ public class GrayScottScript : MonoBehaviour
         Shader.SetBuffer(kernelHandle, "Current", CurrentBuffer);
         Shader.SetBuffer(kernelHandle, "Prev", PreviousBuffer);
 
-        Shader.SetFloat("Kill", this.Kill);
-        Shader.SetFloat("Feed", this.Feed);
-        Shader.SetFloat("ADiffusionRate", this.ADiffusionRate);
-        Shader.SetFloat("BDiffusionRate", this.BDiffusionRate);
-        Shader.SetFloat("DeltaTime", this.DeltaTime);
+        SetShaderValues();
 
         Shader.SetTexture(kernelHandle, "Bitmap", renderTexture);
-
         Shader.Dispatch(kernelHandle, TexResolution / 8, TexResolution / 8, 1);
         
         targetMaterial.SetTexture("_BaseMap", renderTexture);
