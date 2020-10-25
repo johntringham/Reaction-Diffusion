@@ -37,7 +37,8 @@ void SetValue(int2 position, float a, float b){
     Current[position.x + (position.y) * TexSize].A = a;
     Current[position.x + (position.y) * TexSize].B = b;
 
-    Bitmap[position.xy] = float4(a, 0, b, 1);
+	float val = abs(a - b);
+    Bitmap[position.xy] = float4(val, val, val, 1);
 }
 
 [numthreads(8, 8, 1)]

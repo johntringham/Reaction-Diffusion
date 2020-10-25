@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 2138677392}
-  m_IndirectSpecularColor: {r: 0.28502667, g: 0.37139323, b: 0.49600998, a: 1}
+  m_IndirectSpecularColor: {r: 0.28502697, g: 0.37139347, b: 0.49601266, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -134,6 +134,7 @@ GameObject:
   - component: {fileID: 503677064}
   - component: {fileID: 503677063}
   - component: {fileID: 503677062}
+  - component: {fileID: 503677067}
   m_Layer: 0
   m_Name: Quad (1)
   m_TagString: Untagged
@@ -154,7 +155,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Shader: {fileID: 7200000, guid: 193143e3da46773458c5c6ffc184bc44, type: 3}
-  TexResolution: 2048
+  TexResolution: 512
   StartingRadius: 200
   Kill: 0.062
   Feed: 0.055
@@ -171,7 +172,7 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 4
+  serializedVersion: 3
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
@@ -236,6 +237,34 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+--- !u!114 &503677067
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 503677061}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b52aabd469fdb442ac69d2533703eb5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DebugPrinting: 1
+  ShowAllKnobs: 1
+  ShowNotePresses: 0
+  Mappings:
+  - Target: {fileID: 503677062}
+    PropertyName: Kill
+    Range: {x: 0.03, y: 0.09}
+  - Target: {fileID: 503677062}
+    PropertyName: Feed
+    Range: {x: 0.03, y: 0.09}
+  - Target: {fileID: 503677062}
+    PropertyName: ADiffusionRate
+    Range: {x: 0.5, y: 1.5}
+  - Target: {fileID: 503677062}
+    PropertyName: BDiffusionRate
+    Range: {x: 0.1, y: 0.9}
 --- !u!1 &653260035
 GameObject:
   m_ObjectHideFlags: 0
@@ -328,7 +357,7 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 4
+  serializedVersion: 3
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
@@ -518,7 +547,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 0.48
+  orthographic size: 0.53
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2

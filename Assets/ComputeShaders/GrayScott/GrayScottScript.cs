@@ -95,7 +95,7 @@ public class GrayScottScript : MonoBehaviour
         this.renderTexture = new RenderTexture(TexResolution, TexResolution, 24);
         this.renderTexture.enableRandomWrite = true;
         this.renderTexture.antiAliasing = 1;
-        this.renderTexture.filterMode = FilterMode.Point;
+        this.renderTexture.filterMode = FilterMode.Bilinear;
         this.renderTexture.wrapMode = TextureWrapMode.Clamp;
         this.renderTexture.wrapModeU = TextureWrapMode.Clamp;
         this.renderTexture.wrapModeV = TextureWrapMode.Clamp;
@@ -121,7 +121,6 @@ public class GrayScottScript : MonoBehaviour
     {
         //if (Input.GetKeyDown(KeyCode.Space) || Input.GetKey(KeyCode.Return))
         //{
-            UpdateTextureFromCompute();
             UpdateTextureFromCompute();
             UpdateTextureFromCompute();
             UpdateTextureFromCompute();
