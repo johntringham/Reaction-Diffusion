@@ -37,6 +37,8 @@ public class SlimeMoldScript : MonoBehaviour
     public float SensorDistance;
     public float SensorAngle;
     public float Speed;
+    public float TurningPower;
+
     public float TrailBlurSpeed;
     public float TrailFadeSpeed;
 
@@ -91,7 +93,8 @@ public class SlimeMoldScript : MonoBehaviour
         SlimeMoldShader.SetFloat("TrailFadeSpeed", this.TrailFadeSpeed);
         SlimeMoldShader.SetFloat("TrailBlurSpeed", this.TrailBlurSpeed);
 
-        SlimeMoldShader.SetFloat("DeltaTime", Time.deltaTime);
+        SlimeMoldShader.SetFloat("DeltaTime", Time.fixedDeltaTime);
+        SlimeMoldShader.SetFloat("TurningPower", this.TurningPower);
 
         SlimeMoldShader.SetInt("TexSize", TexResolution);
         SlimeMoldShader.SetInt("NumberOfAgents", this.NumberOfAgents);

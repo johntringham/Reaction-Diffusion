@@ -13,9 +13,10 @@ float SensorDistance;
 float SensorAngle;
 float Speed;
 
+float TurningPower;
+
 float TrailFadeSpeed;
 float TrailBlurSpeed;
-
 float DeltaTime;
 
 struct SlimeMoldAgent
@@ -30,7 +31,7 @@ RWTexture2D<float4> Bitmap;
 
 void DrawTrail(SlimeMoldAgent agent)
 {
-    Bitmap[agent.Position] = float4(1, 0, 0, 1);
+    Bitmap[agent.Position] = float4(1, 1, 1, 1);
 }
 
 
@@ -75,6 +76,29 @@ void Update(uint3 id : SV_DispatchThreadID)
         Agents[index].Angle = agent.Angle + 30; // hack but w/e
     }
 
+    float leftAngle = agent.Angle - SensorAngle;
+    float rightAngle = agent.Angle + SensorAngle;
+    float2 leftSensorPosition = agent.Position + float2(cos(leftAngle), sin(leftAngle)) * SensorDistance;
+    float2 rightSensorPosition = agent.Position + float2(cos(rightAngle), sin(rightAngle)) * SensorDistance;
+    float2 forwardSensorPosition = agent.Position + float2(cos(agent.Angle), sin(agent.Angle)) * SensorDistance;
+
+    float leftSensorValue = Bitmap[leftSensorPosition];
+    float rightSensorValue = Bitmap[rightSensorPosition];
+    float forwardSensorValue = Bitmap[forwardSensorPosition];
+
+    if (forwardSensorValue > leftSensorValue && forwardSensorValue > rightSensorValue) {
+        // don't care - just going on in same direction
+    }
+    else {
+        if (leftSensorValue > rightSensorValue) {
+            Agents[index].Angle += TurningPower * DeltaTime;
+        }
+        if (rightSensorValue > leftSensorValue) {
+            Agents[index].Angle -= TurningPower * DeltaTime;
+        }
+        // no else because they could both be zero or s/t
+    }
+
     DrawTrail(agent);
 }
 
@@ -92,8 +116,9 @@ void Blur(uint3 id : SV_DispatchThreadID) {
     }
 
     float4 blurred = total / 9;
-    float4 lerpedForBlur = lerp(Bitmap[position], blurred, TrailBlurSpeed * DeltaTime);
-    float4 fadedValue = max(0, lerpedForBlur - TrailFadeSpeed * DeltaTime);
-
+    
+    float4 lerpedForBlur = lerp(Bitmap[position], blurred, TrailBlurSpeed);
+    float4 fadedValue = max(0, lerpedForBlur - TrailFadeSpeed);
+    
     Bitmap[position.xy] = fadedValue;
 }
