@@ -1,0 +1,99 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel Update
+#pragma kernel ResetGrid
+#pragma kernel Blur
+
+#include "..\..\Compute\NoiseInclude.compute"
+
+int TexSize;
+int NumberOfAgents;
+float Radius;
+
+float SensorDistance;
+float SensorAngle;
+float Speed;
+
+float TrailFadeSpeed;
+float TrailBlurSpeed;
+
+float DeltaTime;
+
+struct SlimeMoldAgent
+{
+    float2 Position;
+    float Angle;
+};
+
+RWStructuredBuffer<SlimeMoldAgent> Agents;
+RWTexture2D<float4> Bitmap;
+
+
+void DrawTrail(SlimeMoldAgent agent)
+{
+    Bitmap[agent.Position] = float4(1, 0, 0, 1);
+}
+
+
+[numthreads(8, 8, 1)]
+void ResetGrid(uint3 id : SV_DispatchThreadID)
+{
+}
+
+[numthreads(16, 1, 1)] // todo: can these numbers change?
+void Update(uint3 id : SV_DispatchThreadID)
+{
+    int index = id.x;
+    if (index >= NumberOfAgents) { // todo: is just "x" fine?
+        return;
+    }
+
+    SlimeMoldAgent agent = Agents[index];
+ 
+    float2 movement = float2(cos(agent.Angle), sin(agent.Angle)) * Speed * DeltaTime;
+    
+    Agents[index].Position = agent.Position + movement;
+    
+    bool oob = false;
+    if (Agents[index].Position.x <= 0) {
+        oob = true;
+        Agents[index].Position.x = 0;
+    }
+    if (Agents[index].Position.y <= 0) {
+        oob = true;
+        Agents[index].Position.y = 0;
+    }
+    if (Agents[index].Position.x >= TexSize) {
+        oob = true;
+        Agents[index].Position.x = TexSize;
+    }
+    if (Agents[index].Position.y >= TexSize) {
+        oob = true;
+        Agents[index].Position.y = TexSize;
+    }
+
+    if (oob) {
+        Agents[index].Angle = agent.Angle + 30; // hack but w/e
+    }
+
+    DrawTrail(agent);
+}
+
+[numthreads(8, 8, 1)]
+void Blur(uint3 id : SV_DispatchThreadID) {
+    
+    int2 position = id.xy;
+
+    float4 total = 0;
+    for (int x = -1; x <= 1; x++) {
+        for (int y = -1; y <= 1; y++) {
+            float4 pixel = Bitmap[position + int2(x,y)];
+            total = total + pixel;
+        }
+    }
+
+    float4 blurred = total / 9;
+    float4 lerpedForBlur = lerp(Bitmap[position], blurred, TrailBlurSpeed * DeltaTime);
+    float4 fadedValue = max(0, lerpedForBlur - TrailFadeSpeed * DeltaTime);
+
+    Bitmap[position.xy] = fadedValue;
+}
