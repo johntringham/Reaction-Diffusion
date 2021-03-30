@@ -155,14 +155,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   SlimeMoldShader: {fileID: 7200000, guid: c0b702a8fe8f9c74c830124675aa9c5a, type: 3}
-  TexResolution: 1024
-  NumberOfAgents: 10000
+  TexResolution: 512
+  NumberOfAgents: 1000000
   targetMaterial: {fileID: 2100000, guid: 5dd7f82c79627964db0468fdb7cf6e97, type: 2}
-  SensorDistance: 0
-  SensorAngle: 0
-  Speed: 5
-  TrailBlurSpeed: 10
-  TrailFadeSpeed: 3
+  SensorDistance: 2
+  SensorAngle: 0.5
+  Speed: 9.07
+  TurningPower: -54
+  TrailBlurSpeed: 0.9
+  TrailFadeSpeed: 0.2
 --- !u!114 &256364235
 MonoBehaviour:
   m_ObjectHideFlags: 0
