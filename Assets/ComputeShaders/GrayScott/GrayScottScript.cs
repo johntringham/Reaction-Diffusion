@@ -14,7 +14,7 @@ public class GrayScottScript : MonoBehaviour
         float B;
     }
 
-    public Vector3[] LaplacianMatrix;
+    public Vector3[] BaseLaplacianMatrix;
 
     public ComputeShader Shader;
     public int TexResolution = 512;
@@ -23,7 +23,7 @@ public class GrayScottScript : MonoBehaviour
 
     protected RenderTexture renderTexture;
     protected int currentBufferIndex = 0;
-    
+
     public float StartingRadius = 30;
 
     public float Kill;
@@ -31,6 +31,9 @@ public class GrayScottScript : MonoBehaviour
     public float ADiffusionRate;
     public float BDiffusionRate;
     public float DeltaTime;
+
+    public float YLaplaceShift = 0;
+    public float XLaplaceShift = 0;
 
     private ComputeBuffer buffer1;
     private ComputeBuffer buffer2;
@@ -77,9 +80,13 @@ public class GrayScottScript : MonoBehaviour
         //    v.z, v.z, v.z, v.z
         //}).ToArray();
 
-        Shader.SetFloats("laplacianR1", this.LaplacianMatrix[0].x, this.LaplacianMatrix[0].y, this.LaplacianMatrix[0].z);
-        Shader.SetFloats("laplacianR2", this.LaplacianMatrix[1].x, this.LaplacianMatrix[1].y, this.LaplacianMatrix[1].z);
-        Shader.SetFloats("laplacianR3", this.LaplacianMatrix[2].x, this.LaplacianMatrix[2].y, this.LaplacianMatrix[2].z);
+        // squaring so that values close to zero become very close to zero (mine doesn't make it easy to zero it and these values are sensitive)
+        var xShift = this.XLaplaceShift * Mathf.Abs(this.XLaplaceShift);
+        var yShift = this.YLaplaceShift * Mathf.Abs(this.YLaplaceShift);
+
+        Shader.SetFloats("laplacianR1", this.BaseLaplacianMatrix[0].x, this.BaseLaplacianMatrix[0].y + xShift, this.BaseLaplacianMatrix[0].z);
+        Shader.SetFloats("laplacianR2", this.BaseLaplacianMatrix[1].x - yShift, this.BaseLaplacianMatrix[1].y, this.BaseLaplacianMatrix[1].z + yShift);
+        Shader.SetFloats("laplacianR3", this.BaseLaplacianMatrix[2].x, this.BaseLaplacianMatrix[2].y - xShift, this.BaseLaplacianMatrix[2].z);
 
         //Shader.SetFloats("laplacian", laplace);
     }

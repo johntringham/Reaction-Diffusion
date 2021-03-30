@@ -154,8 +154,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78a6cbb9ca3c9f0428e1e1a6c2796d0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  BaseLaplacianMatrix:
+  - {x: 0.05, y: 0.2, z: 0.05}
+  - {x: 0.2, y: -1, z: 0.2}
+  - {x: 0.05, y: 0.2, z: 0.05}
   Shader: {fileID: 7200000, guid: 193143e3da46773458c5c6ffc184bc44, type: 3}
-  TexResolution: 512
+  TexResolution: 1024
   targetMaterial: {fileID: 2100000, guid: 70731a3df2ba6f8489e4786869167f61, type: 2}
   StartingRadius: 200
   Kill: 0.062
@@ -163,6 +167,8 @@ MonoBehaviour:
   ADiffusionRate: 1
   BDiffusionRate: 0.5
   DeltaTime: 1
+  YLaplaceShift: 0
+  XLaplaceShift: 0
 --- !u!64 &503677063
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -232,7 +238,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 503677061}
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 3.476, y: 1.318, z: 1.917}
+  m_LocalPosition: {x: 0, y: 0, z: -1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -266,6 +272,22 @@ MonoBehaviour:
   - Target: {fileID: 503677062}
     PropertyName: BDiffusionRate
     Range: {x: 0.1, y: 0.9}
+  - Target: {fileID: 503677062}
+    PropertyName: YLaplaceShift
+    Range: {x: -0.44, y: 0.44}
+  - Target: {fileID: 503677062}
+    PropertyName: XLaplaceShift
+    Range: {x: -0.44, y: 0.44}
+  - Target: {fileID: 1687258587}
+    PropertyName: size
+    Range: {x: 0.2, y: 0.5}
+  ButtonMappings:
+  - Target: {fileID: 503677062}
+    MethodName: ResetGrid
+    NoteNumber: 44
+  - Target: {fileID: 503677062}
+    MethodName: ResetGridToCircle
+    NoteNumber: 45
 --- !u!1 &653260035
 GameObject:
   m_ObjectHideFlags: 0
@@ -466,6 +488,7 @@ GameObject:
   - component: {fileID: 1687258582}
   - component: {fileID: 1687258583}
   - component: {fileID: 1687258586}
+  - component: {fileID: 1687258587}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -548,7 +571,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 0.53
+  orthographic size: 0.5
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -572,7 +595,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1687258581}
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 3.48, y: 1.332, z: 3.509}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -609,6 +632,20 @@ MonoBehaviour:
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
+--- !u!114 &1687258587
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1687258581}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d3e977ec7b10554ab09cf7d201b9dff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  size: 0.5
+  camera: {fileID: 1687258584}
 --- !u!1 &2138677391
 GameObject:
   m_ObjectHideFlags: 0
