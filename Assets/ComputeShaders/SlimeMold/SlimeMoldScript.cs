@@ -29,7 +29,7 @@ public class SlimeMoldScript : MonoBehaviour
 
     public Material targetMaterial;
 
-    public Texture2D fadeMask;
+    public Texture fadeMask;
 
     protected RenderTexture renderTexture;
     protected int currentBufferIndex = 0;
@@ -45,6 +45,9 @@ public class SlimeMoldScript : MonoBehaviour
     public float TrailFadeSpeed;
 
     public float MaskPower;
+
+    public Vector2 LookMovement;
+    public float LookMovementSpeed;
 
     void Start()
     {
@@ -98,6 +101,7 @@ public class SlimeMoldScript : MonoBehaviour
         SlimeMoldShader.SetFloat("TrailBlurSpeed", this.TrailBlurSpeed);
 
         SlimeMoldShader.SetFloat("MaskPower", this.MaskPower);
+        SlimeMoldShader.SetFloats("LookMovement", this.LookMovement.x * LookMovementSpeed, this.LookMovement.y * LookMovementSpeed);
 
         SlimeMoldShader.SetFloat("DeltaTime", Time.fixedDeltaTime);
         SlimeMoldShader.SetFloat("TurningPower", this.TurningPower);
@@ -114,6 +118,7 @@ public class SlimeMoldScript : MonoBehaviour
 
         SetShaderValues();
 
+        SlimeMoldShader.SetTexture(updateKernelHandle, "MaskBitmap", fadeMask);
         SlimeMoldShader.SetTexture(updateKernelHandle, "Bitmap", renderTexture);
         SlimeMoldShader.Dispatch(updateKernelHandle, NumberOfAgents / 16, 1, 1);
 

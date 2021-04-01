@@ -142,6 +142,7 @@ public class GrayScottScript : MonoBehaviour
     }
 }
 
+#if UNITY_EDITOR
 [CustomEditor(typeof(GrayScottScript))]
 public class GrayScottComputeShaderScriptEditor : Editor
 {
@@ -156,3 +157,4 @@ public class GrayScottComputeShaderScriptEditor : Editor
         }
     }
 }
+#endif

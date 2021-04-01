@@ -19,6 +19,7 @@ float TrailFadeSpeed;
 float TrailBlurSpeed;
 float DeltaTime;
 
+float2 LookMovement;
 float MaskPower;
 
 struct SlimeMoldAgent
@@ -31,6 +32,12 @@ RWStructuredBuffer<SlimeMoldAgent> Agents;
 RWTexture2D<float4> Bitmap;
 Texture2D<float4> MaskBitmap; // doesn't need to be rw
 
+
+float2 WrapPosition(float2 input) {
+    float x = (input.x + TexSize) % TexSize;
+    float y = (input.y + TexSize) % TexSize;
+    return float2 (x, y);
+}
 
 void DrawTrail(SlimeMoldAgent agent)
 {
@@ -55,25 +62,12 @@ void Update(uint3 id : SV_DispatchThreadID)
  
     float2 movement = float2(cos(agent.Angle), sin(agent.Angle)) * Speed * DeltaTime;
     
-    Agents[index].Position = agent.Position + movement;
+    Agents[index].Position = agent.Position + movement + LookMovement;
     
     bool oob = false;
-    if (Agents[index].Position.x <= 0) {
-        oob = true;
-        Agents[index].Position.x = 0;
-    }
-    if (Agents[index].Position.y <= 0) {
-        oob = true;
-        Agents[index].Position.y = 0;
-    }
-    if (Agents[index].Position.x >= TexSize) {
-        oob = true;
-        Agents[index].Position.x = TexSize;
-    }
-    if (Agents[index].Position.y >= TexSize) {
-        oob = true;
-        Agents[index].Position.y = TexSize;
-    }
+    
+    Agents[index].Position.x = (Agents[index].Position.x + TexSize) % TexSize;
+    Agents[index].Position.y = (Agents[index].Position.y + TexSize) % TexSize;
 
     if (oob) {
         Agents[index].Angle = agent.Angle + 30; // hack but w/e
@@ -81,13 +75,13 @@ void Update(uint3 id : SV_DispatchThreadID)
 
     float leftAngle = agent.Angle - SensorAngle;
     float rightAngle = agent.Angle + SensorAngle;
-    float2 leftSensorPosition = agent.Position + float2(cos(leftAngle), sin(leftAngle)) * SensorDistance;
-    float2 rightSensorPosition = agent.Position + float2(cos(rightAngle), sin(rightAngle)) * SensorDistance;
-    float2 forwardSensorPosition = agent.Position + float2(cos(agent.Angle), sin(agent.Angle)) * SensorDistance;
+    float2 leftSensorPosition = WrapPosition(agent.Position + float2(cos(leftAngle), sin(leftAngle)) * SensorDistance);
+    float2 rightSensorPosition = WrapPosition(agent.Position + float2(cos(rightAngle), sin(rightAngle)) * SensorDistance);
+    float2 forwardSensorPosition = WrapPosition(agent.Position + float2(cos(agent.Angle), sin(agent.Angle)) * SensorDistance);
 
-    float leftSensorValue = Bitmap[leftSensorPosition];
-    float rightSensorValue = Bitmap[rightSensorPosition];
-    float forwardSensorValue = Bitmap[forwardSensorPosition];
+    float leftSensorValue = Bitmap[leftSensorPosition] + MaskBitmap[leftSensorPosition] * MaskPower;
+    float rightSensorValue = Bitmap[rightSensorPosition] + MaskBitmap[rightSensorPosition] * MaskPower;
+    float forwardSensorValue = Bitmap[forwardSensorPosition] + MaskBitmap[forwardSensorPosition] * MaskPower;
 
     if (forwardSensorValue > leftSensorValue && forwardSensorValue > rightSensorValue) {
         // don't care - just going on in same direction
@@ -105,6 +99,8 @@ void Update(uint3 id : SV_DispatchThreadID)
     DrawTrail(agent);
 }
 
+
+
 [numthreads(8, 8, 1)]
 void Blur(uint3 id : SV_DispatchThreadID) {
     
@@ -118,7 +114,7 @@ void Blur(uint3 id : SV_DispatchThreadID) {
         }
     }
 
-    float4 maskValue = 1 - MaskBitmap[position].r * MaskPower;
+    float4 maskValue = 1;// -MaskBitmap[position].r * MaskPower;
 
     float4 blurred = total / 9;
     
