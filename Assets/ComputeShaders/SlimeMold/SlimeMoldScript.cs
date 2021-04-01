@@ -29,6 +29,8 @@ public class SlimeMoldScript : MonoBehaviour
 
     public Material targetMaterial;
 
+    public Texture2D fadeMask;
+
     protected RenderTexture renderTexture;
     protected int currentBufferIndex = 0;
 

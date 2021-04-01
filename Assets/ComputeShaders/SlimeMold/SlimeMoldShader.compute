@@ -27,6 +27,7 @@ struct SlimeMoldAgent
 
 RWStructuredBuffer<SlimeMoldAgent> Agents;
 RWTexture2D<float4> Bitmap;
+Texture2D<float4> MaskBitmap; // doesn't need to be rw
 
 
 void DrawTrail(SlimeMoldAgent agent)
@@ -115,10 +116,12 @@ void Blur(uint3 id : SV_DispatchThreadID) {
         }
     }
 
+    float4 maskValue = MaskBitmap[position];
+
     float4 blurred = total / 9;
     
     float4 lerpedForBlur = lerp(Bitmap[position], blurred, TrailBlurSpeed);
-    float4 fadedValue = max(0, lerpedForBlur - TrailFadeSpeed);
+    float4 fadedValue = max(0, lerpedForBlur - (TrailFadeSpeed ));
     
     Bitmap[position.xy] = fadedValue;
 }

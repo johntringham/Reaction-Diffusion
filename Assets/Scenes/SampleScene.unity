@@ -158,9 +158,10 @@ MonoBehaviour:
   TexResolution: 512
   NumberOfAgents: 1000000
   targetMaterial: {fileID: 2100000, guid: 5dd7f82c79627964db0468fdb7cf6e97, type: 2}
-  SensorDistance: 2
-  SensorAngle: 0.5
-  Speed: 9.07
+  fadeMask: {fileID: 2800000, guid: 07036c20f87bdac4c9ab7f4b98c87309, type: 3}
+  SensorDistance: 5.78
+  SensorAngle: 0.91
+  Speed: 25.22
   TurningPower: -54
   TrailBlurSpeed: 0.9
   TrailFadeSpeed: 0.2
@@ -171,7 +172,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 256364233}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4b52aabd469fdb442ac69d2533703eb5, type: 3}
   m_Name: 
@@ -180,27 +181,24 @@ MonoBehaviour:
   ShowAllKnobs: 1
   ShowNotePresses: 0
   KnobMappings:
-  - Target: {fileID: 0}
-    PropertyName: Kill
-    Range: {x: 0.03, y: 0.09}
-  - Target: {fileID: 0}
-    PropertyName: Feed
-    Range: {x: 0.03, y: 0.09}
-  - Target: {fileID: 0}
-    PropertyName: ADiffusionRate
-    Range: {x: 0.5, y: 1.5}
-  - Target: {fileID: 0}
-    PropertyName: BDiffusionRate
-    Range: {x: 0.1, y: 0.9}
-  - Target: {fileID: 0}
-    PropertyName: YLaplaceShift
-    Range: {x: -0.44, y: 0.44}
-  - Target: {fileID: 0}
-    PropertyName: XLaplaceShift
-    Range: {x: -0.44, y: 0.44}
-  - Target: {fileID: 1687258587}
-    PropertyName: size
-    Range: {x: 0.2, y: 0.5}
+  - Target: {fileID: 256364234}
+    PropertyName: SensorDistance
+    Range: {x: 0.1, y: 20}
+  - Target: {fileID: 256364234}
+    PropertyName: SensorAngle
+    Range: {x: 0.1, y: 1.8}
+  - Target: {fileID: 256364234}
+    PropertyName: Speed
+    Range: {x: 3, y: 80}
+  - Target: {fileID: 256364234}
+    PropertyName: TurningPower
+    Range: {x: -100, y: 100}
+  - Target: {fileID: 256364234}
+    PropertyName: TrailBlurSpeed
+    Range: {x: 0.3, y: 1}
+  - Target: {fileID: 256364234}
+    PropertyName: TrailFadeSpeed
+    Range: {x: 0.0001, y: 0.1}
   ButtonMappings:
   - Target: {fileID: 0}
     MethodName: ResetGrid
