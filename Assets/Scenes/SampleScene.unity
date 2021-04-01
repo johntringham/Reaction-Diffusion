@@ -158,13 +158,14 @@ MonoBehaviour:
   TexResolution: 512
   NumberOfAgents: 1000000
   targetMaterial: {fileID: 2100000, guid: 5dd7f82c79627964db0468fdb7cf6e97, type: 2}
-  fadeMask: {fileID: 2800000, guid: 07036c20f87bdac4c9ab7f4b98c87309, type: 3}
+  fadeMask: {fileID: 2800000, guid: 81e6b201a8e47904eb91e88425a0625d, type: 3}
   SensorDistance: 5.78
   SensorAngle: 0.91
   Speed: 25.22
   TurningPower: -54
   TrailBlurSpeed: 0.9
   TrailFadeSpeed: 0.2
+  MaskPower: 0
 --- !u!114 &256364235
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -199,6 +200,9 @@ MonoBehaviour:
   - Target: {fileID: 256364234}
     PropertyName: TrailFadeSpeed
     Range: {x: 0.0001, y: 0.1}
+  - Target: {fileID: 256364234}
+    PropertyName: MaskPower
+    Range: {x: 0, y: 3}
   ButtonMappings:
   - Target: {fileID: 0}
     MethodName: ResetGrid

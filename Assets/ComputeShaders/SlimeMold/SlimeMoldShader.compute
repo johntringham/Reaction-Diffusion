@@ -19,6 +19,8 @@ float TrailFadeSpeed;
 float TrailBlurSpeed;
 float DeltaTime;
 
+float MaskPower;
+
 struct SlimeMoldAgent
 {
     float2 Position;
@@ -116,12 +118,12 @@ void Blur(uint3 id : SV_DispatchThreadID) {
         }
     }
 
-    float4 maskValue = MaskBitmap[position];
+    float4 maskValue = 1 - MaskBitmap[position].r * MaskPower;
 
     float4 blurred = total / 9;
     
     float4 lerpedForBlur = lerp(Bitmap[position], blurred, TrailBlurSpeed);
-    float4 fadedValue = max(0, lerpedForBlur - (TrailFadeSpeed ));
+    float4 fadedValue = max(0, lerpedForBlur - (TrailFadeSpeed * maskValue));
     
     Bitmap[position.xy] = fadedValue;
 }

@@ -44,6 +44,8 @@ public class SlimeMoldScript : MonoBehaviour
     public float TrailBlurSpeed;
     public float TrailFadeSpeed;
 
+    public float MaskPower;
+
     void Start()
     {
         this.renderTexture = new RenderTexture(TexResolution, TexResolution, 24);
@@ -95,6 +97,8 @@ public class SlimeMoldScript : MonoBehaviour
         SlimeMoldShader.SetFloat("TrailFadeSpeed", this.TrailFadeSpeed);
         SlimeMoldShader.SetFloat("TrailBlurSpeed", this.TrailBlurSpeed);
 
+        SlimeMoldShader.SetFloat("MaskPower", this.MaskPower);
+
         SlimeMoldShader.SetFloat("DeltaTime", Time.fixedDeltaTime);
         SlimeMoldShader.SetFloat("TurningPower", this.TurningPower);
 
@@ -115,6 +119,7 @@ public class SlimeMoldScript : MonoBehaviour
 
         int blurKernelHandle = SlimeMoldShader.FindKernel("Blur");
 
+        SlimeMoldShader.SetTexture(blurKernelHandle, "MaskBitmap", fadeMask);
         SlimeMoldShader.SetTexture(blurKernelHandle, "Bitmap", renderTexture);
         SlimeMoldShader.Dispatch(blurKernelHandle, TexResolution / 8, TexResolution / 8, 1);
 
