@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using UnityEditor;
 using UnityEngine;
 
 public class GrayScottScript : MonoBehaviour
@@ -143,18 +142,4 @@ public class GrayScottScript : MonoBehaviour
 }
 
 #if UNITY_EDITOR
-[CustomEditor(typeof(GrayScottScript))]
-public class GrayScottComputeShaderScriptEditor : Editor
-{
-    public override void OnInspectorGUI()
-    {
-        DrawDefaultInspector();
-
-        var computeShaderScript = (GrayScottScript)target;
-        if (GUILayout.Button("Reset"))
-        {
-            computeShaderScript.ResetGrid();
-        }
-    }
-}
 #endif
