@@ -45,6 +45,7 @@ public class SlimeMoldScript : MonoBehaviour
     public float TrailFadeSpeed;
 
     public float MaskPower;
+    public float MaskSpeedPower;
 
     public Vector2 LookMovement;
     public float LookMovementSpeed;
@@ -101,6 +102,8 @@ public class SlimeMoldScript : MonoBehaviour
         SlimeMoldShader.SetFloat("TrailBlurSpeed", this.TrailBlurSpeed);
 
         SlimeMoldShader.SetFloat("MaskPower", this.MaskPower);
+        SlimeMoldShader.SetFloat("MaskSpeedPower", this.MaskSpeedPower);
+        
         SlimeMoldShader.SetFloats("LookMovement", this.LookMovement.x * LookMovementSpeed, this.LookMovement.y * LookMovementSpeed);
 
         SlimeMoldShader.SetFloat("DeltaTime", Time.fixedDeltaTime);

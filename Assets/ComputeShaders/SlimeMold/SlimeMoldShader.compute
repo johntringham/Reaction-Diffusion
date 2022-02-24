@@ -21,6 +21,7 @@ float DeltaTime;
 
 float2 LookMovement;
 float MaskPower;
+float MaskSpeedPower;
 
 struct SlimeMoldAgent
 {
@@ -60,12 +61,14 @@ void Update(uint3 id : SV_DispatchThreadID)
 
     SlimeMoldAgent agent = Agents[index];
  
-    float2 movement = float2(cos(agent.Angle), sin(agent.Angle)) * Speed * DeltaTime;
+    float maskSpeedMultiplier = MaskBitmap[agent.Position] * MaskSpeedPower;
+    float2 movement = float2(cos(agent.Angle), sin(agent.Angle)) * Speed * DeltaTime * (1 + maskSpeedMultiplier);
     
     Agents[index].Position = agent.Position + movement + LookMovement;
     
     bool oob = false;
     
+    // wrap around
     Agents[index].Position.x = (Agents[index].Position.x + TexSize) % TexSize;
     Agents[index].Position.y = (Agents[index].Position.y + TexSize) % TexSize;
 
