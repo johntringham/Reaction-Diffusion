@@ -23,6 +23,8 @@ float2 LookMovement;
 float MaskPower;
 float MaskSpeedPower;
 
+float MinSpeed;
+
 struct SlimeMoldAgent
 {
     float2 Position;
@@ -32,7 +34,6 @@ struct SlimeMoldAgent
 RWStructuredBuffer<SlimeMoldAgent> Agents;
 RWTexture2D<float4> Bitmap;
 Texture2D<float4> MaskBitmap; // doesn't need to be rw
-
 
 float2 WrapPosition(float2 input) {
     float x = (input.x + TexSize) % TexSize;
@@ -60,18 +61,9 @@ void Update(uint3 id : SV_DispatchThreadID)
     }
 
     SlimeMoldAgent agent = Agents[index];
- 
-    float maskSpeedMultiplier = MaskBitmap[agent.Position] * MaskSpeedPower;
-    float2 movement = float2(cos(agent.Angle), sin(agent.Angle)) * Speed * DeltaTime * (1 + maskSpeedMultiplier);
-    
-    Agents[index].Position = agent.Position + movement + LookMovement;
     
     bool oob = false;
     
-    // wrap around
-    Agents[index].Position.x = (Agents[index].Position.x + TexSize) % TexSize;
-    Agents[index].Position.y = (Agents[index].Position.y + TexSize) % TexSize;
-
     if (oob) {
         Agents[index].Angle = agent.Angle + 30; // hack but w/e
     }
@@ -98,6 +90,17 @@ void Update(uint3 id : SV_DispatchThreadID)
         }
         // no else because they could both be zero or s/t
     }
+
+    float maxSense = max(leftSensorValue, max(rightSensorValue, forwardSensorValue));
+    float currentSpeed = lerp(MinSpeed * Speed, Speed, maxSense / (1.0 + MaskPower));
+
+    float maskSpeedMultiplier = MaskBitmap[agent.Position] * MaskSpeedPower;
+    float2 movement = float2(cos(agent.Angle), sin(agent.Angle)) * currentSpeed * DeltaTime * (1 + maskSpeedMultiplier);
+
+    Agents[index].Position = agent.Position + movement + LookMovement;
+    // wrap around
+    Agents[index].Position.x = (Agents[index].Position.x + TexSize) % TexSize;
+    Agents[index].Position.y = (Agents[index].Position.y + TexSize) % TexSize;
 
     DrawTrail(agent);
 }

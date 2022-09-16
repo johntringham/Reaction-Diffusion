@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using UnityEngine.InputSystem;
 
 public class PlayerMovementScript : MonoBehaviour
 {
@@ -36,11 +37,14 @@ public class PlayerMovementScript : MonoBehaviour
     {
         if (axes == RotationAxes.MouseXAndY)
         {
-           //Gets rotational input from the mouse
-            rotationY += Input.GetAxis("Mouse Y") * sensitivityY;
-            rotationX += Input.GetAxis("Mouse X") * sensitivityX;
+            //Gets rotational input from the mouse
 
-            rotAverageY = ClampAngle(rotationY, minimumY, maximumY);
+            var mouseMovement = Mouse.current.delta;
+
+            rotationY += mouseMovement.y.ReadValue() * sensitivityY;
+            rotationX += mouseMovement.x.ReadValue() * sensitivityX;
+
+            rotAverageY = rotationY = ClampAngle(rotationY, minimumY, maximumY);
             rotAverageX = rotationX;/////ClampAngle(rotationX, minimumX, maximumX);
 
             //Get the rotation you will be at next as a Quaternion
@@ -55,8 +59,6 @@ public class PlayerMovementScript : MonoBehaviour
             Vector2 lookDifference = (lookPosition - LastLookPosition);
             slimeMoldScript.LookMovement = lookDifference;
 
-            Debug.Log(slimeMoldScript.LookMovement);
-
             LastLookPosition = lookPosition;
         }
 
@@ -65,13 +67,13 @@ public class PlayerMovementScript : MonoBehaviour
 
     private void Move()
     {
-        var x = Input.GetAxis("Horizontal");
-        var z = Input.GetAxis("Vertical");
+        //var x = Input.GetAxis("Horizontal");
+        //var z = Input.GetAxis("Vertical");
 
-        var movement = transform.right * x + transform.forward * z;
+        //var movement = transform.right * x + transform.forward * z;
 
-        this.CharacterController.Move(movement * this.WalkSpeed * Time.deltaTime);
-        this.CharacterController.Move(Vector3.down);
+        //this.CharacterController.Move(movement * this.WalkSpeed * Time.deltaTime);
+        //this.CharacterController.Move(Vector3.down);
     }
 
     void Start()

@@ -46,6 +46,7 @@ public class SlimeMoldScript : MonoBehaviour
 
     public float MaskPower;
     public float MaskSpeedPower;
+    public float MinSpeedRatio;
 
     public Vector2 LookMovement;
     public float LookMovementSpeed;
@@ -108,6 +109,8 @@ public class SlimeMoldScript : MonoBehaviour
 
         SlimeMoldShader.SetFloat("DeltaTime", Time.fixedDeltaTime);
         SlimeMoldShader.SetFloat("TurningPower", this.TurningPower);
+
+        SlimeMoldShader.SetFloat("MinSpeed", this.MinSpeedRatio);
 
         SlimeMoldShader.SetInt("TexSize", TexResolution);
         SlimeMoldShader.SetInt("NumberOfAgents", this.NumberOfAgents);
